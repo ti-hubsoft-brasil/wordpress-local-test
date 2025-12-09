@@ -6,27 +6,18 @@ services:
 
   wordpress:
 
-    image: wordpress:latest
-
+    build: .
     restart: always
-
     ports:
-
       - 8000:80
-
     environment:
-
       WORDPRESS_DB_HOST: db
-
       WORDPRESS_DB_USER: wordpress
-
       WORDPRESS_DB_PASSWORD: wordpress_password
-
       WORDPRESS_DB_NAME: wordpress
-
     volumes:
-
-      - wordpress:/var/www/html
+      - ./html:/var/www/html
+      - ./config/vhost.conf:/etc/apache2/sites-available/000-default.conf
 
 
 
@@ -56,7 +47,7 @@ services:
 
 volumes:
 
-  wordpress:
+
 
   db:
 
