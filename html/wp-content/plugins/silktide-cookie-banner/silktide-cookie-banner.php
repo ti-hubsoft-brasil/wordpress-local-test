@@ -29,7 +29,7 @@ function scb_enqueue_scripts()
     // Parâmetros: handle (identificador único), src (caminho do arquivo), deps (dependências), ver (versão), media (tipo de mídia)
     wp_enqueue_style(
         'silktide-cookie-manager-css',                    // Handle único para identificar este CSS
-        plugin_dir_url(__FILE__) . 'assets/css/cookie-manager.css',  // URL completa do arquivo CSS
+        plugin_dir_url(__FILE__) . 'assets/css/stcm-styles.css',  // URL completa do arquivo CSS
         array(),                                           // Sem dependências de outros CSS
         '1.0.0',                                          // Versão do arquivo (útil para cache busting)
         'all'                                             // Aplica para todos os tipos de mídia (screen, print, etc)
@@ -40,7 +40,7 @@ function scb_enqueue_scripts()
     // Parâmetros: handle, src, deps, ver, in_footer (se true, carrega no rodapé)
     wp_enqueue_script(
         'silktide-cookie-manager-js',                    // Handle único para identificar este JS
-        plugin_dir_url(__FILE__) . 'assets/js/cookie-manager.js',    // URL completa do arquivo JS
+        plugin_dir_url(__FILE__) . 'assets/js/stcm-script.js',    // URL completa do arquivo JS
         array(),                                          // Sem dependências de outros scripts (como jQuery)
         '1.0.0',                                          // Versão do arquivo
         true                                              // true = carrega no rodapé (melhor para performance)
