@@ -1,105 +1,157 @@
 <?php
 /**
  * Plugin Name: Silktide Cookie Banner
- * Plugin URI: https://silktide.com/consent-manager
  * Description: Gerenciador de consentimento de cookies Silktide para WordPress. Adiciona um banner de cookies personalizável em todas as páginas do site.
  * Version: 1.0.0
- * Author: Seu Nome
- * Author URI: https://seusite.com
- * License: GPL v2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: silktide-cookie-banner
+ * Author: Hubsoft TI
  */
 
-// Previne acesso direto ao arquivo
+// previnir acesso direto
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
+ * Verifica se o plugin NÃO deve rodar nesta página
+ */
+function scb_disable_on_privacy_policy() {
+    return is_page('politica-privacidade');
+}
+
+/**
+ * [CORREÇÃO CRUCIAL LGPD/GDPR]
+ * Injeta o comando de Consentimento Padrão do Google (Consent Mode) no <head>.
+ *
+ * É OBRIGATÓRIO que este código seja executado o mais cedo possível (wp_head com prioridade 1)
+ * para definir TODAS as permissões de rastreamento como 'denied' (negado) antes que
+ * o GTM ou outras tags do Google sejam carregadas.
+ */
+function scb_add_consent_default()
+{
+    // Bloqueia execução na página de política de privacidade
+    if (scb_disable_on_privacy_policy()) {
+        return;
+    }
+    ?>
+    <script>
+        // Inicializa o dataLayer (necessário para GTM e Consent Mode)
+        window.dataLayer = window.dataLayer || [];
+
+        // Define a função gtag() que adiciona comandos ao dataLayer
+        function gtag(){dataLayer.push(arguments);}
+
+        // Define o estado de consentimento como NEGADO (denied) por padrão.
+        // Isso é a Negação Implícita exigida pelas leis de privacidade (LGPD/GDPR).
+        // IMPORTANTE: Este código DEVE executar ANTES do GTM/GA4 ser carregado.
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',     // Bloqueia Google Analytics
+            'ad_storage': 'denied',            // Bloqueia Google Ads
+            'ad_user_data': 'denied',          // Bloqueia dados de usuário para Ads
+            'ad_personalization': 'denied',    // Bloqueia personalização de Ads
+            'wait_for_update': 500             // Aguarda 500ms para o usuário aceitar antes de carregar tags
+        });
+    </script>
+    <?php
+}
+
+
+/**
  * Enfileira os scripts e estilos do plugin
- * 
+ *
  * Esta função é chamada pelo hook 'wp_enqueue_scripts' do WordPress.
  * Ela registra e carrega os arquivos CSS e JavaScript necessários para o banner de cookies.
  */
 function scb_enqueue_scripts()
 {
-    // Carrega o arquivo CSS do Silktide
-    // wp_enqueue_style() registra e enfileira uma folha de estilos
-    // Parâmetros: handle (identificador único), src (caminho do arquivo), deps (dependências), ver (versão), media (tipo de mídia)
+    // Bloqueia execução na página de política de privacidade
+    if (scb_disable_on_privacy_policy()) {
+        return;
+    }
+    
     wp_enqueue_style(
-        'silktide-cookie-manager-css',                    // Handle único para identificar este CSS
-        plugin_dir_url(__FILE__) . 'assets/css/stcm-styles.css',  // URL completa do arquivo CSS
-        array(),                                           // Sem dependências de outros CSS
-        '1.0.0',                                          // Versão do arquivo (útil para cache busting)
-        'all'                                             // Aplica para todos os tipos de mídia (screen, print, etc)
+        'silktide-cookie-manager-css',
+        plugin_dir_url(__FILE__) . 'assets/css/stcm-styles.css',
+        array(),
+        '1.0.0',
+        'all'
     );
 
-    // Carrega o arquivo JavaScript do Silktide
-    // wp_enqueue_script() registra e enfileira um script JavaScript
-    // Parâmetros: handle, src, deps, ver, in_footer (se true, carrega no rodapé)
-    wp_enqueue_script(
-        'silktide-cookie-manager-js',                    // Handle único para identificar este JS
-        plugin_dir_url(__FILE__) . 'assets/js/stcm-script.js',    // URL completa do arquivo JS
-        array(),                                          // Sem dependências de outros scripts (como jQuery)
-        '1.0.0',                                          // Versão do arquivo
-        true                                              // true = carrega no rodapé (melhor para performance)
-    );
+
+    // Compatibilidade com WordPress 6.3+ que suporta 'strategy'
+    // Para versões antigas, usar boolean true para in_footer
+    global $wp_version;
+    if (version_compare($wp_version, '6.3', '>=')) {
+        wp_enqueue_script(
+            'silktide-cookie-manager-js',
+            plugin_dir_url(__FILE__) . 'assets/js/stcm-script.js',
+            array(),
+            '1.0.0',
+            array(
+                'in_footer' => true,
+                'strategy' => 'defer'  // defer garante execução após HTML ser parseado
+            )
+        );
+    } else {
+        // Fallback para WordPress < 6.3
+        wp_enqueue_script(
+            'silktide-cookie-manager-js',
+            plugin_dir_url(__FILE__) . 'assets/js/stcm-script.js',
+            array(),
+            '1.0.0',
+            true  // Carrega no footer
+        );
+    }
 }
-// Adiciona a função ao hook 'wp_enqueue_scripts'
-// Este hook é executado quando o WordPress está carregando scripts e estilos no frontend
-add_action('wp_enqueue_scripts', 'scb_enqueue_scripts');
 
 /**
  * Adiciona a configuração do cookie banner no rodapé
- * 
+ *
  * Esta função injeta o código JavaScript de configuração do Silktide no rodapé de cada página.
  * A configuração define os tipos de cookies, textos, posicionamento e callbacks.
  */
 function scb_cookie_config()
 {
+    // Bloqueia execução na página de política de privacidade
+    if (scb_disable_on_privacy_policy()) {
+        return;
+    }
     ?>
     <script>
-        // Verifica se o objeto silktideCookieBannerManager está disponível
-        if (typeof silktideCookieBannerManager !== 'undefined') {
-            // Atualiza a configuração do banner de cookies
-            // Este método aceita um objeto JavaScript com todas as opções de personalização
-            silktideCookieBannerManager.updateCookieBannerConfig({
-                // Configuração do backdrop (fundo escurecido quando o banner aparece)
+        // Função para inicializar o cookie banner com verificação robusta
+        var silktideBannerRetries = 0;
+        var maxRetries = 5;  // Máximo de 5 tentativas (2.5 segundos total)
+
+        function initSilktideCookieBanner() {
+            // verifica se o JS foi carregado pela função wp_enqueue_script
+            if (typeof silktideCookieBannerManager !== 'undefined') {
+                silktideCookieBannerManager.updateCookieBannerConfig({
                 background: {
-                    showBackground: true  // true = mostra o backdrop, false = não mostra
+                    showBackground: true
                 },
 
-                // Configuração do ícone de cookie (aparece após aceitar/rejeitar)
                 cookieIcon: {
-                    position: "bottomLeft"  // Opções: bottomLeft, bottomRight
+                    position: "bottomLeft"
                 },
 
-                // Array com os tipos de cookies que o site utiliza
                 cookieTypes: [
                     {
-                        id: "cookies_necess_rios",  // ID único para este tipo de cookie
-                        name: "Cookies Necessários",  // Nome exibido para o usuário
+                        id: "cookies_necessarios",
+                        name: "Cookies Necessários",
                         description: "<p>Esses cookies são necessários para o <b>funcionamento correto do site</b> e não podem ser desativados. Eles ajudam em funções como fazer login e definir suas preferências de privacidade.</p>",
-                        required: true,  // true = sempre ativado, não pode ser desativado pelo usuário
+                        required: true,
                         onAccept: function () {
-                            // Callback executado quando os cookies necessários são aceitos
                             console.log('Cookies necessários aceitos');
-                            // Aqui você pode adicionar lógica adicional, como carregar scripts essenciais
                         }
                     },
                     {
-                        id: "cookies_de_an_lises",
+                        id: "cookies_de_analises",
                         name: "Cookies de Análises",
                         description: "<p>Esses cookies nos ajudam a melhorar o site, rastreando quais páginas são mais populares e como os visitantes navegam pelo site.</p>",
-                        required: false,  // false = usuário pode aceitar ou rejeitar
+                        required: false,
                         onAccept: function () {
-                            // Callback executado quando cookies de análise são aceitos
                             console.log('Cookies de análise aceitos');
 
-                            // Exemplo de integração com Google Analytics
-                            // Descomente as linhas abaixo se você tiver Google Analytics instalado
-                            /*
+                            // Verifica se a biblioteca de tags do Google (gtag.js) está carregada na página.
                             if (typeof gtag !== 'undefined') {
                                 gtag('consent', 'update', {
                                     analytics_storage: 'granted',
@@ -107,36 +159,28 @@ function scb_cookie_config()
                             }
                             if (typeof dataLayer !== 'undefined') {
                                 dataLayer.push({
-                                    'event': 'consent_accepted_cookies_de_an_lises',
+                                    'event': 'consent_accepted_cookies_de_analises',
                                 });
                             }
-                            */
                         },
                         onReject: function () {
-                            // Callback executado quando cookies de análise são rejeitados
                             console.log('Cookies de análise rejeitados');
 
-                            // Exemplo de integração com Google Analytics
-                            /*
                             if (typeof gtag !== 'undefined') {
                                 gtag('consent', 'update', {
                                     analytics_storage: 'denied',
                                 });
                             }
-                            */
                         }
                     },
                     {
-                        id: "cookies_de_an_ncios",
+                        id: "cookies_de_anuncios",
                         name: "Cookies de Anúncios",
                         description: "<p>Esses cookies fornecem recursos adicionais e personalização para melhorar sua experiência. Eles podem ser definidos por nós ou por parceiros cujos serviços utilizamos.</p>",
                         required: false,
                         onAccept: function () {
-                            // Callback executado quando cookies de anúncios são aceitos
                             console.log('Cookies de anúncios aceitos');
 
-                            // Exemplo de integração com Google Ads
-                            /*
                             if (typeof gtag !== 'undefined') {
                                 gtag('consent', 'update', {
                                     ad_storage: 'granted',
@@ -146,16 +190,13 @@ function scb_cookie_config()
                             }
                             if (typeof dataLayer !== 'undefined') {
                                 dataLayer.push({
-                                    'event': 'consent_accepted_cookies_de_an_ncios',
+                                    'event': 'consent_accepted_cookies_de_anuncios',
                                 });
                             }
-                            */
                         },
                         onReject: function () {
-                            // Callback executado quando cookies de anúncios são rejeitados
                             console.log('Cookies de anúncios rejeitados');
 
-                            /*
                             if (typeof gtag !== 'undefined') {
                                 gtag('consent', 'update', {
                                     ad_storage: 'denied',
@@ -163,16 +204,13 @@ function scb_cookie_config()
                                     ad_personalization: 'denied',
                                 });
                             }
-                            */
                         }
                     }
                 ],
 
-                // Textos personalizados para o banner e modal
                 text: {
                     banner: {
-                        // Textos do banner principal
-                        description: "<p>Usamos cookies em nosso site para melhorar sua experiência de usuário, fornecer conteúdo personalizado e analisar nosso tráfego. <a href=\"<?php echo esc_url(home_url('/politica-de-privacidade')); ?>\" target=\"_blank\">Política de Privacidade</a></p>",
+                        description: "<p>Usamos cookies em nosso site para melhorar sua experiência de usuário, fornecer conteúdo personalizado e analisar nosso tráfego. <a href=\"<?php echo esc_attr(esc_url(home_url('/politica-privacidade'))); ?>\" target=\"_blank\">Política de Privacidade</a></p>",
                         acceptAllButtonText: "Aceitar Todos",
                         acceptAllButtonAccessibleLabel: "Aceitar todos os Cookies",
                         rejectNonEssentialButtonText: "Rejeitar",
@@ -181,24 +219,39 @@ function scb_cookie_config()
                         preferencesButtonAccessibleLabel: "Abrir Preferências de Cookies"
                     },
                     preferences: {
-                        // Textos do modal de preferências
                         title: "Personalize suas preferências de cookies",
                         description: "<p>Respeitamos o seu direito à privacidade. Você pode optar por não permitir alguns tipos de cookies. Suas preferências de cookies serão aplicadas em todo o nosso site.</p>",
-                        creditLinkText: ".",  // Link de crédito do Silktide (use "." para ocultar)
-                        creditLinkAccessibleLabel: "."
+                        creditLinkText: "",
+                        creditLinkAccessibleLabel: ""
                     }
                 },
 
-                // Posicionamento do banner na tela
                 position: {
-                    banner: "bottomLeft"  // Opções: bottomLeft, bottomRight, bottomCenter, center
+                    banner: "bottomLeft"
                 }
             });
+            } else {
+                silktideBannerRetries++;
+                if (silktideBannerRetries < maxRetries) {
+                    console.warn('Silktide Cookie Banner Manager não carregado. Tentativa ' + silktideBannerRetries + ' de ' + maxRetries);
+                    // Retry após 500ms se não carregar na primeira vez
+                    setTimeout(initSilktideCookieBanner, 500);
+                } else {
+                    console.error('Silktide Cookie Banner Manager falhou ao carregar após ' + maxRetries + ' tentativas.');
+                }
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSilktideCookieBanner);
+        } else {
+            initSilktideCookieBanner();
         }
     </script>
     <?php
 }
-// Adiciona a função ao hook 'wp_footer'
-// Este hook é executado no rodapé de cada página, antes do fechamento da tag </body>
-// Prioridade 999 garante que o script seja carregado após outros scripts
+
+
+add_action('wp_head', 'scb_add_consent_default', 1); // Prioridade 1 (a mais alta) garante que carregue antes do GTM, que geralmente usa a prioridade 10.
+add_action('wp_enqueue_scripts', 'scb_enqueue_scripts');
 add_action('wp_footer', 'scb_cookie_config', 999);
