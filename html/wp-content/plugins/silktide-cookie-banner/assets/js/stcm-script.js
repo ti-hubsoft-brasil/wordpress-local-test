@@ -119,13 +119,13 @@ class SilktideCookieBanner {
     checkboxes.forEach((checkbox) => {
       const [, cookieId] = checkbox.id.split('cookies-');
       const cookieType = this.config.cookieTypes.find(type => type.id === cookieId);
-      
+
       if (!cookieType) return;
 
       if (saveToStorage) {
         // Save the current state to localStorage and run callbacks
         const currentState = checkbox.checked;
-        
+
         if (cookieType.required) {
           localStorage.setItem(
             `silktideCookieChoice_${cookieId}${this.getBannerSuffix()}`,
@@ -136,7 +136,7 @@ class SilktideCookieBanner {
             `silktideCookieChoice_${cookieId}${this.getBannerSuffix()}`,
             currentState.toString()
           );
-          
+
           // Run appropriate callback
           if (currentState && typeof cookieType.onAccept === 'function') {
             cookieType.onAccept();
@@ -153,11 +153,11 @@ class SilktideCookieBanner {
           const storedValue = localStorage.getItem(
             `silktideCookieChoice_${cookieId}${this.getBannerSuffix()}`
           );
-          
+
           if (storedValue !== null) {
             checkbox.checked = storedValue === 'true';
           } else {
-            checkbox.checked = !!cookieType.defaultValue;
+            checkbox.checked = true;
           }
         }
       }
@@ -278,30 +278,27 @@ class SilktideCookieBanner {
     // Accept button
     const acceptAllButtonText = this.config.text?.banner?.acceptAllButtonText || 'Accept all';
     const acceptAllButtonLabel = this.config.text?.banner?.acceptAllButtonAccessibleLabel;
-    const acceptAllButton = `<button class="accept-all st-button st-button--primary"${
-      acceptAllButtonLabel && acceptAllButtonLabel !== acceptAllButtonText 
-        ? ` aria-label="${acceptAllButtonLabel}"` 
-        : ''
-    }>${acceptAllButtonText}</button>`;
-    
+    const acceptAllButton = `<button class="accept-all st-button st-button--primary"${acceptAllButtonLabel && acceptAllButtonLabel !== acceptAllButtonText
+      ? ` aria-label="${acceptAllButtonLabel}"`
+      : ''
+      }>${acceptAllButtonText}</button>`;
+
     // Reject button
     const rejectNonEssentialButtonText = this.config.text?.banner?.rejectNonEssentialButtonText || 'Reject non-essential';
     const rejectNonEssentialButtonLabel = this.config.text?.banner?.rejectNonEssentialButtonAccessibleLabel;
-    const rejectNonEssentialButton = `<button class="reject-all st-button st-button--primary"${
-      rejectNonEssentialButtonLabel && rejectNonEssentialButtonLabel !== rejectNonEssentialButtonText 
-        ? ` aria-label="${rejectNonEssentialButtonLabel}"` 
-        : ''
-    }>${rejectNonEssentialButtonText}</button>`;
+    const rejectNonEssentialButton = `<button class="reject-all st-button st-button--primary"${rejectNonEssentialButtonLabel && rejectNonEssentialButtonLabel !== rejectNonEssentialButtonText
+      ? ` aria-label="${rejectNonEssentialButtonLabel}"`
+      : ''
+      }>${rejectNonEssentialButtonText}</button>`;
 
     // Preferences button
     const preferencesButtonText = this.config.text?.banner?.preferencesButtonText || 'Preferences';
     const preferencesButtonLabel = this.config.text?.banner?.preferencesButtonAccessibleLabel;
-    const preferencesButton = `<button class="preferences"${
-      preferencesButtonLabel && preferencesButtonLabel !== preferencesButtonText 
-        ? ` aria-label="${preferencesButtonLabel}"` 
-        : ''
-    }><span>${preferencesButtonText}</span></button>`;
-    
+    const preferencesButton = `<button class="preferences"${preferencesButtonLabel && preferencesButtonLabel !== preferencesButtonText
+      ? ` aria-label="${preferencesButtonLabel}"`
+      : ''
+      }><span>${preferencesButtonText}</span></button>`;
+
 
     // Silktide logo link
     const silktideLogo = `
@@ -373,11 +370,11 @@ class SilktideCookieBanner {
   getModalContent() {
     const preferencesTitle =
       this.config.text?.preferences?.title || 'Customize your cookie preferences';
-    
+
     const preferencesDescription =
       this.config.text?.preferences?.description ||
       "<p>We respect your right to privacy. You can choose not to allow some types of cookies. Your cookie preferences will apply across our website.</p>";
-    
+
     // Preferences button
     const preferencesButtonLabel = this.config.text?.banner?.preferencesButtonAccessibleLabel;
 
@@ -386,7 +383,7 @@ class SilktideCookieBanner {
           <path d="M19.4081 3.41559C20.189 2.6347 20.189 1.36655 19.4081 0.585663C18.6272 -0.195221 17.3591 -0.195221 16.5782 0.585663L10 7.17008L3.41559 0.59191C2.6347 -0.188974 1.36655 -0.188974 0.585663 0.59191C-0.195221 1.37279 -0.195221 2.64095 0.585663 3.42183L7.17008 10L0.59191 16.5844C-0.188974 17.3653 -0.188974 18.6335 0.59191 19.4143C1.37279 20.1952 2.64095 20.1952 3.42183 19.4143L10 12.8299L16.5844 19.4081C17.3653 20.189 18.6335 20.189 19.4143 19.4081C20.1952 18.6272 20.1952 17.3591 19.4143 16.5782L12.8299 10L19.4081 3.41559Z"/>
       </svg>
     </button>`;
-    
+
 
     const cookieTypes = this.config.cookieTypes || [];
     const acceptedCookieMap = this.getAcceptedCookies();
@@ -394,31 +391,28 @@ class SilktideCookieBanner {
     // Accept button
     const acceptAllButtonText = this.config.text?.banner?.acceptAllButtonText || 'Accept all';
     const acceptAllButtonLabel = this.config.text?.banner?.acceptAllButtonAccessibleLabel;
-    const acceptAllButton = `<button class="preferences-accept-all st-button st-button--primary"${
-      acceptAllButtonLabel && acceptAllButtonLabel !== acceptAllButtonText 
-        ? ` aria-label="${acceptAllButtonLabel}"` 
-        : ''
-    }>${acceptAllButtonText}</button>`;
-    
+    const acceptAllButton = `<button class="preferences-accept-all st-button st-button--primary"${acceptAllButtonLabel && acceptAllButtonLabel !== acceptAllButtonText
+      ? ` aria-label="${acceptAllButtonLabel}"`
+      : ''
+      }>${acceptAllButtonText}</button>`;
+
     // Reject button
     const rejectNonEssentialButtonText = this.config.text?.banner?.rejectNonEssentialButtonText || 'Reject non-essential';
     const rejectNonEssentialButtonLabel = this.config.text?.banner?.rejectNonEssentialButtonAccessibleLabel;
-    const rejectNonEssentialButton = `<button class="preferences-reject-all st-button st-button--primary"${
-      rejectNonEssentialButtonLabel && rejectNonEssentialButtonLabel !== rejectNonEssentialButtonText 
-        ? ` aria-label="${rejectNonEssentialButtonLabel}"` 
-        : ''
-    }>${rejectNonEssentialButtonText}</button>`;
-    
+    const rejectNonEssentialButton = `<button class="preferences-reject-all st-button st-button--primary"${rejectNonEssentialButtonLabel && rejectNonEssentialButtonLabel !== rejectNonEssentialButtonText
+      ? ` aria-label="${rejectNonEssentialButtonLabel}"`
+      : ''
+      }>${rejectNonEssentialButtonText}</button>`;
+
     // Credit link
     const creditLinkText = this.config.text?.preferences?.creditLinkText || 'Get this banner for free';
     const creditLinkAccessibleLabel = this.config.text?.preferences?.creditLinkAccessibleLabel;
-    const creditLink = `<a href="https://silktide.com/consent-manager" target="_blank" rel="noreferrer"${
-      creditLinkAccessibleLabel && creditLinkAccessibleLabel !== creditLinkText
-        ? ` aria-label="${creditLinkAccessibleLabel}"`
-        : ''
-    }>${creditLinkText}</a>`;
-    
-    
+    const creditLink = `<a href="https://silktide.com/consent-manager" target="_blank" rel="noreferrer"${creditLinkAccessibleLabel && creditLinkAccessibleLabel !== creditLinkText
+      ? ` aria-label="${creditLinkAccessibleLabel}"`
+      : ''
+      }>${creditLinkText}</a>`;
+
+
 
     const modalContent = `
       <header>
@@ -428,28 +422,27 @@ class SilktideCookieBanner {
       ${preferencesDescription}
       <section id="cookie-preferences">
         ${cookieTypes
-          .map((type) => {
-            const accepted = acceptedCookieMap[type.id];
-            let isChecked = false;
+        .map((type) => {
+          const accepted = acceptedCookieMap[type.id];
+          let isChecked = true;
 
-            // if it's accepted then show as checked
-            if (accepted) {
-              isChecked = true;
-            }
+          // if it's accepted then show as checked
+          if (accepted) {
+            isChecked = true;
+          }
 
-            // if nothing has been accepted / rejected yet, then show as checked if the default value is true
-            if (!accepted && !this.hasSetInitialCookieChoices()) {
-              isChecked = type.defaultValue;
-            }
+          // if nothing has been accepted / rejected yet, then show as checked if the default value is true
+          if (!accepted && !this.hasSetInitialCookieChoices()) {
+            isChecked = true;
+          }
 
-            return `
+          return `
             <fieldset>
                 <legend>${type.name}</legend>
                 <div class="cookie-type-content">
                     <div class="cookie-type-description">${type.description}</div>
                     <label class="switch" for="cookies-${type.id}">
-                        <input type="checkbox" id="cookies-${type.id}" ${
-              type.required ? 'checked disabled' : isChecked ? 'checked' : ''
+                        <input type="checkbox" id="cookies-${type.id}" ${type.required ? 'checked disabled' : isChecked ? 'checked' : ''
             } />
                         <span class="switch__pill" aria-hidden="true"></span>
                         <span class="switch__dot" aria-hidden="true"></span>
@@ -459,8 +452,8 @@ class SilktideCookieBanner {
                 </div>
             </fieldset>
         `;
-          })
-          .join('')}
+        })
+        .join('')}
       </section>
       <footer>
         ${acceptAllButton}
@@ -501,7 +494,7 @@ class SilktideCookieBanner {
     } else {
       // Set that an initial choice was made when closing the modal
       this.setInitialCookieChoiceMade();
-      
+
       // Save current checkbox states to storage
       this.updateCheckboxState(true);
 
@@ -576,7 +569,7 @@ class SilktideCookieBanner {
     this.config.cookieTypes.forEach((type) => {
       let accepted = true;
       // Set localStorage and run accept/reject callbacks
-      if (type.required == true || type.defaultValue) {
+      if (type.required == true || true) {
         localStorage.setItem(
           `silktideCookieChoice_${type.id}${this.getBannerSuffix()}`,
           accepted.toString(),
@@ -707,7 +700,7 @@ class SilktideCookieBanner {
       // Update the checkbox event listeners
       const preferencesSection = this.modal.querySelector('#cookie-preferences');
       const checkboxes = preferencesSection.querySelectorAll('input[type="checkbox"]');
-      
+
       checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', (event) => {
           const [, cookieId] = event.target.id.split('cookies-');
@@ -715,19 +708,19 @@ class SilktideCookieBanner {
           const previousValue = localStorage.getItem(
             `silktideCookieChoice_${cookieId}${this.getBannerSuffix()}`
           ) === 'true';
-          
+
           // Only proceed if the value has actually changed
           if (isAccepted !== previousValue) {
             // Find the corresponding cookie type
             const cookieType = this.config.cookieTypes.find(type => type.id === cookieId);
-            
+
             if (cookieType) {
               // Update localStorage
               localStorage.setItem(
                 `silktideCookieChoice_${cookieId}${this.getBannerSuffix()}`,
                 isAccepted.toString()
               );
-              
+
               // Run the appropriate callback only if the value changed
               if (isAccepted && typeof cookieType.onAccept === 'function') {
                 cookieType.onAccept();
@@ -791,7 +784,7 @@ class SilktideCookieBanner {
   let cookieBanner;
 
   function updateCookieBannerConfig(userConfig = {}) {
-    config = {...config, ...userConfig};
+    config = { ...config, ...userConfig };
 
     // If cookie banner exists, destroy and recreate it with new config
     if (cookieBanner) {
@@ -804,7 +797,7 @@ class SilktideCookieBanner {
       initCookieBanner();
     } else {
       // Wait for DOM to be ready
-      document.addEventListener('DOMContentLoaded', initCookieBanner, {once: true});
+      document.addEventListener('DOMContentLoaded', initCookieBanner, { once: true });
     }
   }
 
@@ -839,7 +832,7 @@ class SilktideCookieBanner {
   window.silktideCookieBannerManager.injectScript = injectScript;
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCookieBanner, {once: true});
+    document.addEventListener('DOMContentLoaded', initCookieBanner, { once: true });
   } else {
     initCookieBanner();
   }
